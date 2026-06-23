@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Link Iklan - Track Lokasi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.95em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .generated-link {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            border: 2px dashed #667eea;
+        }
+
+        .copy-btn {
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+
+        .copy-btn:hover {
+            background: #218838;
+        }
+
+        .view-btn {
+            background: #17a2b8;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .view-btn:hover {
+            background: #138496;
+        }
+
+        .links-table {
+            margin-top: 40px;
+        }
+
+        .links-table h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+
+        .view-location {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-clicked {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .ad-preview {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .ad-preview h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Generator Link Iklan</h1>
+        <p class="subtitle">Buat link iklan dummy yang dapat melacak lokasi pengunjung</p>
+
+        <form id="linkForm">
+            <div class="form-group">
+                <label>📝 Judul Iklan:</label>
+                <input type="text" id="adTitle" placeholder="Contoh: Promo Diskon 50% - Buruan!" required>
+            </div>
+
+            <div class="form-group">
+                <label>📄 Deskripsi Iklan:</label>
+                <textarea id="adDescription" placeholder="Masukkan deskripsi iklan yang menarik..." required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>🎨 Template Iklan:</label>
+                <select id="adTemplate">
+                    <option value="promo">Promo / Diskon</option>
+                    <option value="hadiah">Hadiah / Giveaway</option>
+                    <option value="info">Info Penting</option>
+                    <option value="urgent">Urgent / Mendesak</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn">🚀 Generate Link Iklan</button>
+        </form>
+
+        <div id="result" class="result">
+            <h3>✅ Link Berhasil Dibuat!</h3>
+            <div class="generated-link" id="generatedLink"></div>
+            <button class="copy-btn" onclick="copyLink()">📋 Copy Link</button>
+            <button class="view-btn" onclick="previewAd()">👁️ Preview Iklan</button>
+            
+            <div id="adPreview" class="ad-preview" style="display:none;">
+                <h3>Preview Iklan:</h3>
+                <div id="previewContent"></div>
+            </div>
+        </div>
+
+        <div class="links-table">
+            <h2>📊 Daftar Link yang Dibuat</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Judul</th>
+                        <th>Dibuat</th>
+                        <th>Klik</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="linksTableBody">
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #999;">Belum ada link yang dibuat</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let links = JSON.parse(localStorage.getItem('adLinks') || '[]');
+        let currentLink = '';
+
+        document.getElementById('linkForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const title = document.getElementById('adTitle').value;
+            const description = document.getElementById('adDescription').value;
+            const template = document.getElementById('adTemplate').value;
+            
+            const linkId = generateId();
+            const timestamp = new Date().toISOString();
+            
+            const linkData = {
+                id: linkId,
+                title: title,
+                description: description,
+                template: template,
+                created: new Date().toLocaleString('id-ID'),
+                clicks: 0,
+                locations: []
+            };
+            
+            links.unshift(linkData);
+            localStorage.setItem('adLinks', JSON.stringify(links));
+            
+            const baseUrl = window.location.origin + window.location.pathname.replace('index.html', '');
+            currentLink = `${baseUrl}ad.html?id=${linkId}`;
+            
+            document.getElementById('generatedLink').textContent = currentLink;
+            document.getElementById('result').classList.add('show');
+            
+            updateLinksTable();
+            
+            this.reset();
+        });
+
+        function generateId() {
+            return 'ad_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function copyLink() {
+            navigator.clipboard.writeText(currentLink).then(() => {
+                alert('✅ Link berhasil di-copy!');
+            });
+        }
+
+        function previewAd() {
+            const preview = document.getElementById('adPreview');
+            const content = document.getElementById('previewContent');
+            
+            const linkData = links[0];
+            content.innerHTML = `
+                <h2>${linkData.title}</h2>
+                <p>${linkData.description}</p>
+                <p><em>Template: ${linkData.template}</em></p>
+            `;
+            
+            preview.style.display = preview.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function updateLinksTable() {
+            const tbody = document.getElementById('linksTableBody');
+            
+            if (links.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">Belum ada link yang dibuat</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = links.map(link => `
+                <tr>
+                    <td><strong>${link.title}</strong></td>
+                    <td>${link.created}</td>
+                    <td>${link.clicks}</td>
+                    <td>
+                        <span class="status-badge ${link.clicks > 0 ? 'status-clicked' : 'status-active'}">
+                            ${link.clicks > 0 ? 'Diklik' : 'Aktif'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="action-btn view-location" onclick="viewLocations('${link.id}')">📍 Lokasi</button>
+                        <button class="action-btn delete-btn" onclick="deleteLink('${link.id}')">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function viewLocations(linkId) {
+            const link = links.find(l => l.id === linkId);
+            if (!link) return;
+            
+            if (link.locations.length === 0) {
+                alert('Belum ada yang mengklik link ini.');
+                return;
+            }
+            
+            const baseUrl = window.location.origin + window.location.pathname.replace('index.html', '');
+            window.open(`${baseUrl}locations.html?id=${linkId}`, '_blank');
+        }
+
+        function deleteLink(linkId) {
+            if (confirm('Yakin ingin menghapus link ini?')) {
+                links = links.filter(l => l.id !== linkId);
+                localStorage.setItem('adLinks', JSON.stringify(links));
+                updateLinksTable();
+            }
+        }
+
+        updateLinksTable();
+    </script>
+</body>
+</html>

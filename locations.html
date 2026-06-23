@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Lokasi Pengunjung</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+
+        .location-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .location-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .location-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .location-time {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .location-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .detail-item {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .detail-label {
+            color: #666;
+            font-size: 0.85em;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .detail-value {
+            color: #333;
+            font-size: 1em;
+            word-break: break-word;
+        }
+
+        .map-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .map-link:hover {
+            transform: translateY(-2px);
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 1.1em;
+        }
+
+        .back-btn {
+            display: inline-block;
+            background: #6c757d;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .back-btn:hover {
+            background: #5a6268;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-btn">← Kembali</a>
+        
+        <h1>📍 Data Lokasi Pengunjung</h1>
+        
+        <div class="info">
+            <h3 id="adTitle">Loading...</h3>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalClicks">0</div>
+                <div class="stat-label">Total Klik</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="withLocation">0</div>
+                <div class="stat-label">Lokasi Terekam</div>
+            </div>
+        </div>
+
+        <div id="locationsContainer"></div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const linkId = urlParams.get('id');
+
+        function loadLocations() {
+            const links = JSON.parse(localStorage.getItem('adLinks') || '[]');
+            const adData = links.find(l => l.id === linkId);
+
+            if (!adData) {
+                document.getElementById('adTitle').textContent = 'Link tidak ditemukan';
+                document.getElementById('locationsContainer').innerHTML = 
+                    '<div class="no-data">❌ Data tidak ditemukan</div>';
+                return;
+            }
+
+            document.getElementById('adTitle').textContent = 
+                `Link: ${adData.title} (Dibuat: ${adData.created})`;
+
+            document.getElementById('totalClicks').textContent = adData.clicks;
+
+            const withLocation = adData.locations.filter(
+                loc => loc.latitude !== 'Ditolak' && loc.latitude !== 'Tidak Didukung'
+            ).length;
+            document.getElementById('withLocation').textContent = withLocation;
+
+            if (adData.locations.length === 0) {
+                document.getElementById('locationsContainer').innerHTML = 
+                    '<div class="no-data">📭 Belum ada yang mengklik link ini</div>';
+                return;
+            }
+
+            const container = document.getElementById('locationsContainer');
+            container.innerHTML = adData.locations.map((loc, index) => {
+                const hasValidLocation = loc.latitude !== 'Ditolak' && 
+                                       loc.latitude !== 'Tidak Didukung';
+                
+                return `
+                    <div class="location-card">
+                        <div class="location-header">
+                            <div class="location-time">🕐 ${loc.timestamp}</div>
+                            ${hasValidLocation ? 
+                                `<a href="https://www.google.com/maps?q=${loc.latitude},${loc.longitude}" 
+                                   target="_blank" class="map-link">🗺️ Buka di Maps</a>` : 
+                                '<span style="color: #dc3545; font-weight: 600;">❌ Lokasi Ditolak</span>'
+                            }
+                        </div>
+                        <div class="location-details">
+                            <div class="detail-item">
+                                <div class="detail-label">📍 Latitude</div>
+                                <div class="detail-value">${loc.latitude}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">📍 Longitude</div>
+                                <div class="detail-value">${loc.longitude}</div>
+                            </div>
+                            ${loc.accuracy ? `
+                            <div class="detail-item">
+                                <div class="detail-label">🎯 Akurasi</div>
+                                <div class="detail-value">${Math.round(loc.accuracy)} meter</div>
+                            </div>
+                            ` : ''}
+                            <div class="detail-item">
+                                <div class="detail-label">💻 Platform</div>
+                                <div class="detail-value">${loc.platform || 'Unknown'}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">🌐 Browser</div>
+                                <div class="detail-value">${getBrowserName(loc.userAgent)}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">🗣️ Bahasa</div>
+                                <div class="detail-value">${loc.language || 'Unknown'}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+
+        function getBrowserName(userAgent) {
+            if (!userAgent) return 'Unknown';
+            
+            if (userAgent.includes('Firefox')) return 'Firefox';
+            if (userAgent.includes('Chrome')) return 'Chrome';
+            if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) return 'Safari';
+            if (userAgent.includes('Edge')) return 'Edge';
+            if (userAgent.includes('Opera') || userAgent.includes('OPR')) return 'Opera';
+            
+            return 'Other';
+        }
+
+        loadLocations();
+    </script>
+</body>
+</html>
