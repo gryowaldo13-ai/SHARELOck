@@ -1,0 +1,11 @@
+{
+  "name": "sharelock",
+  "version": "1.0.0",
+  "description": "Website Generator Link Iklan dengan Location Tracking",
+  "scripts": {
+    "deploy": "vercel --prod"
+  },
+  "keywords": ["tracking", "geolocation", "ad-generator"],
+  "author": "",
+  "license": "MIT"
+}
