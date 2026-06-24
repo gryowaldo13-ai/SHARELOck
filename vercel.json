@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "name": "sharelock",
   "builds": [
     {
       "src": "*.html",
