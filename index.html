@@ -398,16 +398,17 @@
 
         function viewLocations(linkId) {
             const link = links.find(l => l.id === linkId);
-            if (!link) return;
+            if (!link) {
+                console.error('Link not found');
+                return;
+            }
             
             // Cek dari localStorage dengan key khusus
             const locations = JSON.parse(localStorage.getItem(`location_${linkId}`) || '[]');
             const clicks = parseInt(localStorage.getItem(`clicks_${linkId}`) || '0');
             
-            if (locations.length === 0 && clicks === 0) {
-                alert('Belum ada yang mengklik link ini.');
-                return;
-            }
+            // Jangan tampilkan alert, langsung buka halaman locations
+            // User bisa lihat sendiri kalau tidak ada data
             
             // Encode link data untuk dikirim ke halaman locations
             const encodedLink = btoa(encodeURIComponent(JSON.stringify({
