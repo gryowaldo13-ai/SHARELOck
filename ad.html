@@ -195,10 +195,26 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const linkId = urlParams.get('id');
+        const encodedData = urlParams.get('data');
 
         function loadAdContent() {
-            const links = JSON.parse(localStorage.getItem('adLinks') || '[]');
-            const adData = links.find(l => l.id === linkId);
+            let adData = null;
+            
+            // Coba decode dari URL parameter dulu
+            if (encodedData) {
+                try {
+                    const decoded = decodeURIComponent(atob(encodedData));
+                    adData = JSON.parse(decoded);
+                } catch (e) {
+                    console.error('Error decoding data:', e);
+                }
+            }
+            
+            // Fallback ke localStorage jika ada
+            if (!adData) {
+                const links = JSON.parse(localStorage.getItem('adLinks') || '[]');
+                adData = links.find(l => l.id === linkId);
+            }
 
             if (!adData) {
                 document.getElementById('adTitle').textContent = 'Link Tidak Ditemukan';
@@ -296,6 +312,7 @@
         }
 
         function saveLocation(locationData) {
+            // Simpan ke localStorage (untuk testing lokal)
             const links = JSON.parse(localStorage.getItem('adLinks') || '[]');
             const linkIndex = links.findIndex(l => l.id === linkId);
 
@@ -304,6 +321,16 @@
                 links[linkIndex].locations.push(locationData);
                 localStorage.setItem('adLinks', JSON.stringify(links));
             }
+            
+            // Juga simpan ke localStorage dengan key khusus untuk cross-domain access
+            const locationKey = `location_${linkId}`;
+            const existingLocations = JSON.parse(localStorage.getItem(locationKey) || '[]');
+            existingLocations.push(locationData);
+            localStorage.setItem(locationKey, JSON.stringify(existingLocations));
+            
+            // Update counter
+            const clickCount = localStorage.getItem(`clicks_${linkId}`) || '0';
+            localStorage.setItem(`clicks_${linkId}`, String(parseInt(clickCount) + 1));
         }
 
         loadAdContent();

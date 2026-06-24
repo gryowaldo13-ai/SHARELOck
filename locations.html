@@ -186,11 +186,40 @@
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const linkId = urlParams.get('id');
+        const encodedData = urlParams.get('data');
+        const linkId = urlParams.get('id'); // fallback untuk compatibility
 
         function loadLocations() {
-            const links = JSON.parse(localStorage.getItem('adLinks') || '[]');
-            const adData = links.find(l => l.id === linkId);
+            let adData = null;
+            
+            // Coba decode dari URL parameter
+            if (encodedData) {
+                try {
+                    const decoded = decodeURIComponent(atob(encodedData));
+                    adData = JSON.parse(decoded);
+                } catch (e) {
+                    console.error('Error decoding data:', e);
+                }
+            }
+            
+            // Fallback ke localStorage jika ada
+            if (!adData && linkId) {
+                const links = JSON.parse(localStorage.getItem('adLinks') || '[]');
+                const link = links.find(l => l.id === linkId);
+                
+                if (link) {
+                    const locations = JSON.parse(localStorage.getItem(`location_${linkId}`) || link.locations || '[]');
+                    const clicks = parseInt(localStorage.getItem(`clicks_${linkId}`) || link.clicks || '0');
+                    
+                    adData = {
+                        id: linkId,
+                        title: link.title,
+                        created: link.created,
+                        clicks: clicks,
+                        locations: locations
+                    };
+                }
+            }
 
             if (!adData) {
                 document.getElementById('adTitle').textContent = 'Link tidak ditemukan';
@@ -202,14 +231,14 @@
             document.getElementById('adTitle').textContent = 
                 `Link: ${adData.title} (Dibuat: ${adData.created})`;
 
-            document.getElementById('totalClicks').textContent = adData.clicks;
+            document.getElementById('totalClicks').textContent = adData.clicks || 0;
 
-            const withLocation = adData.locations.filter(
+            const withLocation = (adData.locations || []).filter(
                 loc => loc.latitude !== 'Ditolak' && loc.latitude !== 'Tidak Didukung'
             ).length;
             document.getElementById('withLocation').textContent = withLocation;
 
-            if (adData.locations.length === 0) {
+            if (!adData.locations || adData.locations.length === 0) {
                 document.getElementById('locationsContainer').innerHTML = 
                     '<div class="no-data">📭 Belum ada yang mengklik link ini</div>';
                 return;

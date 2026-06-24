@@ -318,8 +318,20 @@
             links.unshift(linkData);
             localStorage.setItem('adLinks', JSON.stringify(links));
             
-            const baseUrl = window.location.origin + window.location.pathname.replace('index.html', '');
-            currentLink = `${baseUrl}ad.html?id=${linkId}`;
+            // Generate link dengan domain Vercel yang bersih
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const baseUrl = isLocalhost 
+                ? window.location.origin + window.location.pathname.replace('index.html', '')
+                : 'https://sharelock-two.vercel.app/';
+            
+            // Encode data dalam URL untuk bisa dibaca di domain berbeda
+            const encodedData = btoa(encodeURIComponent(JSON.stringify({
+                title: title,
+                description: description,
+                template: template
+            })));
+            
+            currentLink = `${baseUrl}ad.html?id=${linkId}&data=${encodedData}`;
             
             document.getElementById('generatedLink').textContent = currentLink;
             document.getElementById('result').classList.add('show');
@@ -361,14 +373,18 @@
                 return;
             }
             
-            tbody.innerHTML = links.map(link => `
+            tbody.innerHTML = links.map(link => {
+                // Update clicks dari localStorage
+                const actualClicks = parseInt(localStorage.getItem(`clicks_${link.id}`) || link.clicks || '0');
+                
+                return `
                 <tr>
                     <td><strong>${link.title}</strong></td>
                     <td>${link.created}</td>
-                    <td>${link.clicks}</td>
+                    <td>${actualClicks}</td>
                     <td>
-                        <span class="status-badge ${link.clicks > 0 ? 'status-clicked' : 'status-active'}">
-                            ${link.clicks > 0 ? 'Diklik' : 'Aktif'}
+                        <span class="status-badge ${actualClicks > 0 ? 'status-clicked' : 'status-active'}">
+                            ${actualClicks > 0 ? 'Diklik' : 'Aktif'}
                         </span>
                     </td>
                     <td>
@@ -376,20 +392,38 @@
                         <button class="action-btn delete-btn" onclick="deleteLink('${link.id}')">🗑️</button>
                     </td>
                 </tr>
-            `).join('');
+            `;
+            }).join('');
         }
 
         function viewLocations(linkId) {
             const link = links.find(l => l.id === linkId);
             if (!link) return;
             
-            if (link.locations.length === 0) {
+            // Cek dari localStorage dengan key khusus
+            const locations = JSON.parse(localStorage.getItem(`location_${linkId}`) || '[]');
+            const clicks = parseInt(localStorage.getItem(`clicks_${linkId}`) || '0');
+            
+            if (locations.length === 0 && clicks === 0) {
                 alert('Belum ada yang mengklik link ini.');
                 return;
             }
             
-            const baseUrl = window.location.origin + window.location.pathname.replace('index.html', '');
-            window.open(`${baseUrl}locations.html?id=${linkId}`, '_blank');
+            // Encode link data untuk dikirim ke halaman locations
+            const encodedLink = btoa(encodeURIComponent(JSON.stringify({
+                id: linkId,
+                title: link.title,
+                created: link.created,
+                clicks: clicks,
+                locations: locations
+            })));
+            
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const baseUrl = isLocalhost 
+                ? window.location.origin + window.location.pathname.replace('index.html', '')
+                : 'https://sharelock-two.vercel.app/';
+            
+            window.open(`${baseUrl}locations.html?data=${encodedLink}`, '_blank');
         }
 
         function deleteLink(linkId) {
